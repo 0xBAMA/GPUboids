@@ -106,6 +106,37 @@ void engine::createWindowAndContext() {
 	glBindTexture( GL_TEXTURE_2D, displayTexture );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageData[ 0 ] );
 	glBindImageTexture( 0, displayTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
+
+	// atomic accumulator textures
+	glGenTextures( 3, &colorAccumulate[ 0 ] );
+	glActiveTexture( GL_TEXTURE1 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 0 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 1, colorAccumulate[ 0 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	glActiveTexture( GL_TEXTURE2 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 1 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 2, colorAccumulate[ 1 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	glActiveTexture( GL_TEXTURE3 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 2 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 3, colorAccumulate[ 2 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	// boid SSBO
+	std::vector< glm::vec4 > boidInitialData;
+	boidInitialData.resize( numBoids * floatsPerBoid );
+
+	for( int i = 0; i < numBoids; i++ ) {
+		// populate the initial content of the boid buffer
+
+	}
+
+	glGenBuffers( 1, &boidSSBO );
+	glBindBuffer( GL_SHADER_STORAGE_BUFFER, boidSSBO );
+	glBufferData( GL_SHADER_STORAGE_BUFFER, numBoids * floatsPerBoid, ( GLvoid* ) &boidInitialData[ 0 ],  GL_DYNAMIC_COPY );
+	glBindBufferBase( GL_SHADER_STORAGE_BUFFER, 0, boidSSBO );
 }
 
 void engine::computeShaderCompile() {

@@ -89,6 +89,10 @@ using json = nlohmann::json;
 #define WIDTH 640
 #define HEIGHT 480
 
+static const int writeBufferSize = 1000;
+static const int floatsPerBoid = 8;
+static const int numBoids = 1000;
+
 // Function to get color temperature from shadertoy user BeRo
 // from the author:
 //   Color temperature (sRGB) stuff
@@ -113,5 +117,6 @@ inline glm::vec3 get_color_for_temp( double temperature ) {
 	return glm::mix( glm::clamp( glm::vec3( m[ 0 ] / ( glm::vec3( glm::clamp( temperature, 1000.0, 40000.0 ) ) +
 		m[ 1 ] ) + m[ 2 ] ), glm::vec3( 0.0 ), glm::vec3( 1.0 ) ), glm::vec3( 1.0 ), glm::smoothstep( 1000.0, 0.0, temperature ) );
 }
+
 
 #endif

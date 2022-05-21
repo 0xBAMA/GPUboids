@@ -23,6 +23,10 @@ private:
 	GLuint displayShader;
 	GLuint displayVAO;
 
+	// Textures
+	GLuint colorAccumulate[ 3 ];
+	GLuint boidSSBO;
+
 	// initialization
 	void init();
 	void startMessage();
