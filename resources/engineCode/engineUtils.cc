@@ -1,8 +1,8 @@
 #include "engine.h"
 
 bool engine::mainLoop() {
-	// compute passes here
-		// invoke any shaders you want to use to do work on the GPU
+	// compute passes
+	computePasses();
 
 	// clear the screen and depth buffer
 	clear();
@@ -27,6 +27,36 @@ void engine::clear() {
 	// clear the screen
 	glClearColor( clearColor.x, clearColor.y, clearColor.z, clearColor.w ); // from hsv picker
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void engine::computePasses() {
+
+	// dispatch boids update w/ atomic writes
+	glUseProgram( boidShader );
+	glUniform1f( glGetUniformLocation( boidShader, "time" ), SDL_GetTicks() / 100.0 );
+	glDispatchCompute( sqrtNumBoids / 16 + 1, sqrtNumBoids / 16 + 1, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+	// swap current and previous buffers
+	std::swap( colorAccumulate[ 0 ], colorAccumulate[ 3 ] );
+	std::swap( colorAccumulate[ 1 ], colorAccumulate[ 4 ] );
+	std::swap( colorAccumulate[ 2 ], colorAccumulate[ 5 ] );
+	// rebind, in the swapped positions
+	for( int i = 1; i < 7; i++ )
+		glBindImageTexture( i, colorAccumulate[ i - 1 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	// dispatch blur pass
+	glUseProgram( blurShader );
+	// glDispatchCompute( writeBufferSize / 16, writeBufferSize / 16, 1 );
+	glDispatchCompute( ( totalScreenWidth / 16 ) + 1, ( totalScreenHeight / 16 ) + 1, 1 );
+	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+	// dispatch bake pass
+	// glUseProgram( bakeShader );
+	// glDispatchCompute( writeBufferSize / 16, writeBufferSize / 16, 1 );
+	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
+
+	// ready to present
 }
 
 void engine::mainDisplay() {

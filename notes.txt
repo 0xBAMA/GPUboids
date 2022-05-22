@@ -9,13 +9,16 @@ basis construction
 
 
 checking neighbors:
-	in neighboring bin ( early out )
-		dot product of displacement falls into cone
-			distance within sphere of influence
-				consider the boid under consideration as a member of local group
+	iterate through the SSBO contents
+		not own index
+			in neighboring bin ( early out )
+				dot product of displacement falls into cone
+					distance within sphere of influence
+						the boid under consideration is a member of local group
+					else don't
+				else don't
 			else don't
 		else don't
-	else don't
 
 
 simulation rules:
@@ -27,6 +30,22 @@ simulation rules:
 
 	cohesion
 		force attracting to the center of mass of the visible local neighbors
+
+
+parameters:
+	rendering:
+		output range scalar ( divisor for value kept in atomic accumulator buffers )
+
+	simulation:
+		number of boids - not user settable, just need for keeping track of how many boids are in play
+		velocity scalar
+		perception distance
+		perception angle
+		separation weight
+		alignment weight
+		cohesion weight
+
+
 
 
 	▄▐▐▄▐▀▐▐▀▐▀▐▐▀▐▐▐
@@ -42,5 +61,5 @@ simulation rules:
 high level structure:
 	boid.cs.glsl performs simulation logic, updating point locations and performing atomic writes
 	blur.cs.glsl blurs the previous accumulators into the current accumulators
-	bake.cs.glsl takes current accumulators and combines 3 channels into the display texture
-	blit.vs/fs.glsl samples the current display texture to show onscreen
+	// bake.cs.glsl takes current accumulators and combines 3 channels into the display texture // not working
+	blit.vs/fs.glsl now samples the three accumulators to show them onscreen

@@ -43,6 +43,7 @@ private:
 	void imguiSetup();
 
 	// main loop functions
+	void computePasses();
 	void mainDisplay();
 	void handleEvents();
 	void clear();

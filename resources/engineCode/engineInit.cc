@@ -108,41 +108,51 @@ void engine::createWindowAndContext() {
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, writeBufferSize, writeBufferSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageData[ 0 ] );
 	glBindImageTexture( 0, displayTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
 
+	SDL_DisplayMode dm;
+	SDL_GetDesktopDisplayMode( 0, &dm );
+	totalScreenWidth = dm.w;
+	totalScreenHeight = dm.h;
+
 	// atomic accumulator textures - front and back for RGB
 	glGenTextures( 6, &colorAccumulate[ 0 ] );
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 0 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 1, colorAccumulate[ 0 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
 	glActiveTexture( GL_TEXTURE2 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 1 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 2, colorAccumulate[ 1 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
 	glActiveTexture( GL_TEXTURE3 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 2 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 3, colorAccumulate[ 2 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
 	glActiveTexture( GL_TEXTURE4 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 3 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 4, colorAccumulate[ 3 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
 	glActiveTexture( GL_TEXTURE5 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 4 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 5, colorAccumulate[ 4 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
 	glActiveTexture( GL_TEXTURE6 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 5 ] );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, totalScreenWidth, totalScreenHeight, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 6, colorAccumulate[ 5 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
+
+
 	// boid SSBO
+	const int numBoids = sqrtNumBoids * sqrtNumBoids;
 	std::vector< glm::vec4 > boidInitialData;
-	boidInitialData.resize( numBoids * floatsPerBoid );
+	boidInitialData.reserve( numBoids * floatsPerBoid );
+
+	std::uniform_real_distribution<float> fdist( -1.0, 1.0 );
 
 	for( int i = 0; i < numBoids; i++ ) {
 		// populate the initial content of the boid buffer
@@ -153,6 +163,10 @@ void engine::createWindowAndContext() {
 				// write amounts, r,g,b
 				// bin ( encoded in the .w's of the three above vectors )
 
+
+				for( int j = 0; j < floatsPerBoid; j++ ){
+					boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), fdist( gen ) ) );
+				}
 	}
 
 	glGenBuffers( 1, &boidSSBO );

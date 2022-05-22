@@ -1,16 +1,23 @@
 #version 430
 layout( local_size_x = 16, local_size_y = 16, local_size_z = 1 ) in;
-layout( binding = 1, r32ui ) uniform uimage2D current;
-layout( binding = 2, r32ui ) uniform uimage2D previous;
+layout( binding = 1, r32ui ) uniform uimage2D currentR;
+layout( binding = 2, r32ui ) uniform uimage2D currentG;
+layout( binding = 3, r32ui ) uniform uimage2D currentB;
 
 uniform ivec2 computeDimensions;
 uniform float time;
 
-// need to pass in number? maybe vertex shader is better... index with gl_VertexID * 2
+// write level is in the .w's
+struct boidType{
+	vec4 position;
+	vec4 velocity;
+	vec4 binValue;
+};
 layout( binding = 0, std430 ) buffer agent_data {
-	vec4 data[];	// [position0, velocity0], [position1, velocity1], ...
+	boidType data[];
 };
 
+uint index;
 
 mat2 rotate2D( float r ){ return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) ); }
 mat3 rotate3D( float angle, vec3 axis ){
@@ -43,13 +50,44 @@ uint wangHash() {
 }
 float randomFloat() { return float( wangHash() ) / 4294967296.0; }
 
+void wraparoundBoundsCheck( inout float val ){
+	if( val > 1.0 )
+		val -= 2.0;
+	if( val < -1.0)
+		val += 2.0;
+}
+
+void update( inout boidType boidUnderConsideration ){
+	boidUnderConsideration.position.xyz += 0.005 * boidUnderConsideration.velocity.xyz;
+	boidUnderConsideration.velocity.xyz += acceleration();
+
+	wraparoundBoundsCheck( boidUnderConsideration.position.x );
+	wraparoundBoundsCheck( boidUnderConsideration.position.y );
+	wraparoundBoundsCheck( boidUnderConsideration.position.z );
+}
+
+void draw( boidType boidUnderConsideration ){
+
+	vec3 drawPosition = boidUnderConsideration.position.xyz;
+	// drawPosition = rotate3D( time / 12.0, vec3( 1.0 ) ) * drawPosition;
+	ivec2 imageSizeScalar = ivec2( min( imageSize( currentR ).x, imageSize( currentR ).y ) );
+	ivec2 writeLocation = ivec2( 0.618 * ( drawPosition.xy + vec2( 1.0 ) ) * ( imageSizeScalar / 2 ) );
+
+	// magic numbers for screen alignment
+	writeLocation.x += ( 850 );
+	writeLocation.y += ( 250 );
+
+	imageAtomicAdd( currentR, writeLocation, max( int( 1000 * abs( boidUnderConsideration.position.w ) ), 0 ) );
+	imageAtomicAdd( currentG, writeLocation, max( int( 1000 * abs( boidUnderConsideration.velocity.w ) ), 0 ) );
+	imageAtomicAdd( currentB, writeLocation, max( int( 1000 * abs( boidUnderConsideration.binValue.w ) ), 0 ) );
+}
+
 void main() {
-	uint index = ( gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y ) * 2;
+	seed = index = ( gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y );
 
 	// construct rotation matrix on CPU and pass it in as a matrix - want to do quaternion style rotation with keyboard control
 
-	vec3 drawPosition = data[ index ].xyz;
-	ivec2 writeLocation = ivec2( ( drawPosition.xy + vec2( 1.0 ) ) * ( imageSize( current ) / 2 ) );
+	update( data[ index ] );
+	draw( data[ index ] );
 
-	imageAtomicAdd( current, writeLocation, 1000 );
 }
