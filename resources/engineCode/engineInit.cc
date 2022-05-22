@@ -79,7 +79,7 @@ void engine::createWindowAndContext() {
 
 	// replace this with real image data
 	std::vector<uint8_t> imageData;
-	imageData.resize( WIDTH * HEIGHT * 4 );
+	imageData.resize( writeBufferSize * writeBufferSize * 4 );
 
 	// fill with random values
 	std::default_random_engine gen;
@@ -101,14 +101,15 @@ void engine::createWindowAndContext() {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 
-	// buffer the image data to the GPU
+// buffer the image data to the GPU
+	// display texture, holding RGB data to present
 	glActiveTexture( GL_TEXTURE0 );
 	glBindTexture( GL_TEXTURE_2D, displayTexture );
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageData[ 0 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, writeBufferSize, writeBufferSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, &imageData[ 0 ] );
 	glBindImageTexture( 0, displayTexture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8UI );
 
-	// atomic accumulator textures
-	glGenTextures( 3, &colorAccumulate[ 0 ] );
+	// atomic accumulator textures - front and back for RGB
+	glGenTextures( 6, &colorAccumulate[ 0 ] );
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 0 ] );
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
@@ -124,12 +125,33 @@ void engine::createWindowAndContext() {
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
 	glBindImageTexture( 3, colorAccumulate[ 2 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
 
+	glActiveTexture( GL_TEXTURE4 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 3 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 4, colorAccumulate[ 3 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	glActiveTexture( GL_TEXTURE5 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 4 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 5, colorAccumulate[ 4 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
+	glActiveTexture( GL_TEXTURE6 );
+	glBindTexture( GL_TEXTURE_2D, colorAccumulate[ 5 ] );
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_R32UI, writeBufferSize, writeBufferSize, 0,  GL_RED_INTEGER, GL_UNSIGNED_INT, NULL );
+	glBindImageTexture( 6, colorAccumulate[ 5 ], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI );
+
 	// boid SSBO
 	std::vector< glm::vec4 > boidInitialData;
 	boidInitialData.resize( numBoids * floatsPerBoid );
 
 	for( int i = 0; i < numBoids; i++ ) {
 		// populate the initial content of the boid buffer
+
+			// agent data:
+				// position
+				// direction
+				// write amounts, r,g,b
+				// bin ( encoded in the .w's of the three above vectors )
 
 	}
 
@@ -140,7 +162,9 @@ void engine::createWindowAndContext() {
 }
 
 void engine::computeShaderCompile() {
-	// compile any compute shaders here, store handles in engine class member function variables
+	boidShader = CShader( "resources/engineCode/shaders/boid.cs.glsl" ).Program;
+	blurShader = CShader( "resources/engineCode/shaders/blur.cs.glsl" ).Program;
+	bakeShader = CShader( "resources/engineCode/shaders/bake.cs.glsl" ).Program;
 }
 
 

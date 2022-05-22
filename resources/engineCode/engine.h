@@ -23,9 +23,16 @@ private:
 	GLuint displayShader;
 	GLuint displayVAO;
 
-	// Textures
-	GLuint colorAccumulate[ 3 ];
+	// Textures - RGB, front and back buffers
+	GLuint colorAccumulate[ 6 ];
+
+	// SSBO holding boid data
 	GLuint boidSSBO;
+
+	// shaders for the boids op
+	GLuint boidShader;
+	GLuint blurShader;
+	GLuint bakeShader;
 
 	// initialization
 	void init();

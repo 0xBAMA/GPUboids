@@ -42,18 +42,15 @@ void engine::imguiPass() {
 	// start the imgui frame
 	imguiFrameStart();
 
-	// show the demo window
-	static bool showDemoWindow = true;
-	if ( showDemoWindow )
-		ImGui::ShowDemoWindow( &showDemoWindow );
-
 	// show quit confirm window
 	quitConf( &quitConfirm );
+
+	// controls window
+
 
 	// finish up the imgui stuff and put it in the framebuffer
 	imguiFrameEnd();
 }
-
 
 void engine::handleEvents() {
 	SDL_Event event;

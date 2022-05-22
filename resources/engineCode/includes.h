@@ -90,7 +90,7 @@ using json = nlohmann::json;
 #define HEIGHT 480
 
 static const int writeBufferSize = 1000;
-static const int floatsPerBoid = 8;
+static const int floatsPerBoid = 12;
 static const int numBoids = 1000;
 
 // Function to get color temperature from shadertoy user BeRo
