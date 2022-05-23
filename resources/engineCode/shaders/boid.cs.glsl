@@ -19,7 +19,6 @@ layout( binding = 0, std430 ) buffer agent_data {
 	boidType data[];
 };
 
-uint index = gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y;
 
 mat2 rotate2D( float r ){ return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) ); }
 mat3 rotate3D( float angle, vec3 axis ){
@@ -40,6 +39,8 @@ mat3 rotate3D( float angle, vec3 axis ){
 	);
 }
 
+// this invocation's boid index in the SSBO
+uint index = gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y;
 // random float generation
 uint seed = index;
 uint wangHash() {
@@ -53,7 +54,7 @@ uint wangHash() {
 float randomFloat() { return float( wangHash() ) / 4294967296.0; }
 
 
-// I think it's going to be best to accumulate all terms in a single pass
+// I think it's going to be best to accumulate all terms in a single pass, so you only walk the list once
 vec3 acceleration(){
 	int numBoids = computeDimensions.x * computeDimensions.y;
 
@@ -64,7 +65,7 @@ vec3 acceleration(){
 
 	// alignment term - align with nearby agents
 		// for all boids
-			// if within perception distance, look at the position value for that agent, add to accumulator
+			// if within perception distance, look at the velocity value for that agent, add to accumulator
 				// increment a total count
 			// end for
 		// if total count greater than zero
@@ -82,11 +83,18 @@ vec3 acceleration(){
 	for( int i = 0; i < numBoids; i++ ) {
 		if( i != index ) { // no self comparisons
 			if( distance( data[ index ].position.xyz, data[ i ].position.xyz ) < 0.25 ) { // distance threshold
-
+				countBoidsInLocalNeighborhood++;
+				alignmentAccumulator += data[ i ].velocity.xyz;
 			}
 		}
 	}
+	if( countBoidsInLocalNeighborhood > 0 ) {
+		alignmentAccumulator /= float( countBoidsInLocalNeighborhood );
+		alignmentAccumulator = 0.01 * normalize( alignmentAccumulator );
+		// alignmentAccumulator -= data[ index ].position.xyz;
+	}
 
+	totalForce += alignmentAccumulator;
 
 	return totalForce;
 }
@@ -105,8 +113,13 @@ void wraparoundBoundsCheck( inout vec3 val ){
 }
 
 void update( inout boidType boidUnderConsideration ){
-	boidUnderConsideration.position.xyz += 0.005 * boidUnderConsideration.velocity.xyz;
+	boidUnderConsideration.position.xyz += 0.001 * boidUnderConsideration.velocity.xyz;
 	boidUnderConsideration.velocity.xyz += acceleration();
+
+	// clamp the magnitude of the velocity
+	float mag = length( boidUnderConsideration.velocity.xyz );
+	mag = clamp( mag, 0.0, 1.0 );
+	boidUnderConsideration.velocity.xyz = mag * normalize( boidUnderConsideration.velocity.xyz );
 
 	wraparoundBoundsCheck( boidUnderConsideration.position.xyz );
 }
