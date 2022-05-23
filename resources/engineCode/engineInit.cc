@@ -160,12 +160,12 @@ void engine::createWindowAndContext() {
 			// agent data:
 				// position
 				// direction
-				// write amounts, r,g,b
-				// bin ( encoded in the .w's of the three above vectors )
+				// bin
+				// write amounts, r,g,b ( encoded in the .w's of the three above vectors )
 
 
-				for( int j = 0; j < floatsPerBoid; j++ ){
-					boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), fdist( gen ) ) );
+				for( int j = 0; j < ( floatsPerBoid / 4 ); j++ ){
+					boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), std::abs( fdist( gen ) ) + 1.0 ) );
 				}
 	}
 
@@ -178,7 +178,6 @@ void engine::createWindowAndContext() {
 void engine::computeShaderCompile() {
 	boidShader = CShader( "resources/engineCode/shaders/boid.cs.glsl" ).Program;
 	blurShader = CShader( "resources/engineCode/shaders/blur.cs.glsl" ).Program;
-	bakeShader = CShader( "resources/engineCode/shaders/bake.cs.glsl" ).Program;
 }
 
 

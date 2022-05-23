@@ -38,6 +38,10 @@ void engine::paramWindow() {
 	ImGui::Begin( "Simulation Parameters", NULL, 0 );
 
 	ImGui::SliderFloat( "Output Range Scalar", &sp.outputRangeScalar, 0.0, 10000.0 );
+	ImGui::SameLine();
+	HelpMarker( "Scalar for the values kept in the atomic write buffers, when presented to output" );
+
+
 
 	ImGui::End();
 }

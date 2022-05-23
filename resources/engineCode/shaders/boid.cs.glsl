@@ -19,7 +19,7 @@ layout( binding = 0, std430 ) buffer agent_data {
 	boidType data[];
 };
 
-uint index;
+uint index = gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y;
 
 mat2 rotate2D( float r ){ return mat2( cos( r ), sin( r ), -sin( r ), cos( r ) ); }
 mat3 rotate3D( float angle, vec3 axis ){
@@ -41,7 +41,7 @@ mat3 rotate3D( float angle, vec3 axis ){
 }
 
 // random float generation
-uint seed = 0;
+uint seed = index;
 uint wangHash() {
 	seed = uint( seed ^ uint( 61 ) ) ^ uint( seed >> uint( 16 ) );
 	seed *= uint( 9 );
@@ -77,14 +77,25 @@ vec3 acceleration(){
 	// cohesion term
 
 
+	int countBoidsInLocalNeighborhood = 0;
+	vec3 alignmentAccumulator = vec3( 0.0 );
+	for( int i = 0; i < numBoids; i++ ) {
+		if( i != index ) { // no self comparisons
+			if( distance( data[ index ].position.xyz, data[ i ].position.xyz ) < 0.25 ) { // distance threshold
+
+			}
+		}
+	}
+
+
 	return totalForce;
 }
 
 void wraparoundBoundsCheck( inout float val ){
 	if( val > 1.0 )
-	val -= 2.0;
+		val = -1.0;
 	if( val < -1.0)
-	val += 2.0;
+		val = 1.0;
 }
 
 void wraparoundBoundsCheck( inout vec3 val ){
@@ -112,17 +123,14 @@ void draw( boidType boidUnderConsideration ){
 	writeLocation.x += ( 850 );
 	writeLocation.y += ( 250 );
 
-	imageAtomicAdd( currentR, writeLocation, max( int( 1000 * abs( boidUnderConsideration.position.w ) ), 0 ) );
-	imageAtomicAdd( currentG, writeLocation, max( int( 1000 * abs( boidUnderConsideration.velocity.w ) ), 0 ) );
-	imageAtomicAdd( currentB, writeLocation, max( int( 1000 * abs( boidUnderConsideration.binValue.w ) ), 0 ) );
+	imageAtomicAdd( currentR, writeLocation, int( 1000 * boidUnderConsideration.position.w ) );
+	imageAtomicAdd( currentG, writeLocation, int( 1000 * boidUnderConsideration.velocity.w ) );
+	imageAtomicAdd( currentB, writeLocation, int( 1000 * boidUnderConsideration.binValue.w ) );
 }
 
 void main() {
-	seed = index = ( gl_GlobalInvocationID.x + computeDimensions.x * gl_GlobalInvocationID.y );
-
-	// construct rotation matrix on CPU and pass it in as a matrix - want to do quaternion style rotation with keyboard control
-
-	update( data[ index ] );
-	draw( data[ index ] );
-
+	if( gl_GlobalInvocationID.x < computeDimensions.x && gl_GlobalInvocationID.y < computeDimensions.y ){
+		update( data[ index ] );
+		draw( data[ index ] );
+	}
 }

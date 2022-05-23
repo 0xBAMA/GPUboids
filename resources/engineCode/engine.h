@@ -32,7 +32,6 @@ private:
 	// shaders for the boids op
 	GLuint boidShader;
 	GLuint blurShader;
-	GLuint bakeShader;
 
 	// simulation parameters
 	void paramWindow();

@@ -32,6 +32,7 @@ void engine::sendSimParams() {
 	glUniform1f( glGetUniformLocation( displayShader, "outputRangeScalar" ), sp.outputRangeScalar );
 
 	glUseProgram( boidShader );
+	glUniform2i( glGetUniformLocation( boidShader, "computeDimensions" ), sqrtNumBoids, sqrtNumBoids );
 	glUniformMatrix3fv( glGetUniformLocation( boidShader, "rotationMatrix" ), 1, GL_FALSE, glm::value_ptr( sp.rotationMatrix ) );
 }
 
@@ -46,7 +47,7 @@ void engine::computePasses() {
 	// dispatch boids update w/ atomic writes
 	glUseProgram( boidShader );
 	glUniform1f( glGetUniformLocation( boidShader, "time" ), SDL_GetTicks() / 100.0 );
-	glDispatchCompute( sqrtNumBoids / 16 + 1, sqrtNumBoids / 16 + 1, 1 );
+	glDispatchCompute( sqrtNumBoids / 16, sqrtNumBoids / 16, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 	// swap current and previous buffers
@@ -62,11 +63,6 @@ void engine::computePasses() {
 	// glDispatchCompute( writeBufferSize / 16, writeBufferSize / 16, 1 );
 	glDispatchCompute( ( totalScreenWidth / 16 ) + 1, ( totalScreenHeight / 16 ) + 1, 1 );
 	glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
-
-	// dispatch bake pass
-	// glUseProgram( bakeShader );
-	// glDispatchCompute( writeBufferSize / 16, writeBufferSize / 16, 1 );
-	// glMemoryBarrier( GL_SHADER_IMAGE_ACCESS_BARRIER_BIT );
 
 	// ready to present
 }
@@ -111,8 +107,6 @@ void engine::handleEvents() {
 
 		if ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT )
 			pQuit = true; // force quit on shift+esc ( bypasses confirm window )
-
-
 
 		// quaternion based rotation via retained state in the basis vectors - much easier to use than the arbitrary euler angles
 		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_UP ) {
