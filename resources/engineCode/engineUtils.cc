@@ -1,6 +1,9 @@
 #include "engine.h"
 
 bool engine::mainLoop() {
+	// update simulation parameters
+	sendSimParams();
+
 	// compute passes
 	computePasses();
 
@@ -21,6 +24,15 @@ bool engine::mainLoop() {
 
 	// break main loop when pQuit turns true
 	return pQuit;
+}
+
+void engine::sendSimParams() {
+	// glUniform1f( glGetUniformLocation( boidShader, "" ), );
+	glUseProgram( displayShader );
+	glUniform1f( glGetUniformLocation( displayShader, "outputRangeScalar" ), sp.outputRangeScalar );
+
+	glUseProgram( boidShader );
+	glUniformMatrix3fv( glGetUniformLocation( boidShader, "rotationMatrix" ), 1, GL_FALSE, glm::value_ptr( sp.rotationMatrix ) );
 }
 
 void engine::clear() {
@@ -76,7 +88,7 @@ void engine::imguiPass() {
 	quitConf( &quitConfirm );
 
 	// controls window
-
+	paramWindow();
 
 	// finish up the imgui stuff and put it in the framebuffer
 	imguiFrameEnd();
@@ -99,5 +111,25 @@ void engine::handleEvents() {
 
 		if ( event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE && SDL_GetModState() & KMOD_SHIFT )
 			pQuit = true; // force quit on shift+esc ( bypasses confirm window )
+
+
+
+		// quaternion based rotation via retained state in the basis vectors - much easier to use than the arbitrary euler angles
+		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_UP ) {
+			glm::quat rot = glm::angleAxis( SDL_GetModState() & KMOD_SHIFT ? -0.1f : -0.005f, glm::vec3( 1.0, 0.0, 0.0 ) );
+			sp.rotationMatrix = glm::toMat3( rot ) * sp.rotationMatrix;
+		}
+		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_DOWN ) {
+			glm::quat rot = glm::angleAxis( SDL_GetModState() & KMOD_SHIFT ?  0.1f :  0.005f, glm::vec3( 1.0, 0.0, 0.0 ) );
+			sp.rotationMatrix = glm::toMat3( rot ) * sp.rotationMatrix;
+		}
+		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_LEFT ) {
+			glm::quat rot = glm::angleAxis( SDL_GetModState() & KMOD_SHIFT ? -0.1f : -0.005f, glm::vec3( 0.0, 1.0, 0.0 ) );
+			sp.rotationMatrix = glm::toMat3( rot ) * sp.rotationMatrix;
+		}
+		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT ) {
+			glm::quat rot = glm::angleAxis( SDL_GetModState() & KMOD_SHIFT ?  0.1f :  0.005f, glm::vec3( 0.0, 1.0, 0.0 ) );
+			sp.rotationMatrix = glm::toMat3( rot ) * sp.rotationMatrix;
+		}
 	}
 }

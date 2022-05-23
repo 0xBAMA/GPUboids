@@ -34,6 +34,11 @@ private:
 	GLuint blurShader;
 	GLuint bakeShader;
 
+	// simulation parameters
+	void paramWindow();
+	void sendSimParams();
+	simParams sp;
+
 	// initialization
 	void init();
 	void startMessage();

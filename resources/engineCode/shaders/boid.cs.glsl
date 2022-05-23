@@ -7,6 +7,8 @@ layout( binding = 3, r32ui ) uniform uimage2D currentB;
 uniform ivec2 computeDimensions;
 uniform float time;
 
+uniform mat3 rotationMatrix;
+
 // write level is in the .w's
 struct boidType{
 	vec4 position;
@@ -50,26 +52,59 @@ uint wangHash() {
 }
 float randomFloat() { return float( wangHash() ) / 4294967296.0; }
 
+
+// I think it's going to be best to accumulate all terms in a single pass
+vec3 acceleration(){
+	int numBoids = computeDimensions.x * computeDimensions.y;
+
+	vec3 totalForce = vec3( 0.0 );
+
+	// separation term
+
+
+	// alignment term - align with nearby agents
+		// for all boids
+			// if within perception distance, look at the position value for that agent, add to accumulator
+				// increment a total count
+			// end for
+		// if total count greater than zero
+			// accumulator divided by total count to get result
+			// scale the result by the maximum velocity
+			// subtract the current boid's velocity to get the steering force
+			// limit the magnitude of this vector by the maximum force
+
+
+	// cohesion term
+
+
+	return totalForce;
+}
+
 void wraparoundBoundsCheck( inout float val ){
 	if( val > 1.0 )
-		val -= 2.0;
+	val -= 2.0;
 	if( val < -1.0)
-		val += 2.0;
+	val += 2.0;
+}
+
+void wraparoundBoundsCheck( inout vec3 val ){
+	wraparoundBoundsCheck( val.x );
+	wraparoundBoundsCheck( val.y );
+	wraparoundBoundsCheck( val.z );
 }
 
 void update( inout boidType boidUnderConsideration ){
 	boidUnderConsideration.position.xyz += 0.005 * boidUnderConsideration.velocity.xyz;
 	boidUnderConsideration.velocity.xyz += acceleration();
 
-	wraparoundBoundsCheck( boidUnderConsideration.position.x );
-	wraparoundBoundsCheck( boidUnderConsideration.position.y );
-	wraparoundBoundsCheck( boidUnderConsideration.position.z );
+	wraparoundBoundsCheck( boidUnderConsideration.position.xyz );
 }
 
 void draw( boidType boidUnderConsideration ){
 
 	vec3 drawPosition = boidUnderConsideration.position.xyz;
 	// drawPosition = rotate3D( time / 12.0, vec3( 1.0 ) ) * drawPosition;
+	drawPosition = rotationMatrix * drawPosition;
 	ivec2 imageSizeScalar = ivec2( min( imageSize( currentR ).x, imageSize( currentR ).y ) );
 	ivec2 writeLocation = ivec2( 0.618 * ( drawPosition.xy + vec2( 1.0 ) ) * ( imageSizeScalar / 2 ) );
 

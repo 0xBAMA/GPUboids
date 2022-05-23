@@ -41,6 +41,7 @@ constexpr int MSAACount = 1;
 #include "../GLM/gtc/type_ptr.hpp"         //to send matricies gpu-side
 #include "../GLM/gtx/rotate_vector.hpp"
 #include "../GLM/gtx/transform.hpp"
+#include "../GLM/gtx/quaternion.hpp"
 
 // not sure as to the utility of this
 #define GLX_GLEXT_PROTOTYPES
@@ -91,7 +92,18 @@ using json = nlohmann::json;
 
 static const int writeBufferSize = 1024;
 static const int floatsPerBoid = 12;
-static const int sqrtNumBoids = 16;
+// static const int sqrtNumBoids = 16;
+static const int sqrtNumBoids = 1024;
+
+struct simParams {
+	// rendering
+	float outputRangeScalar = 1618; // scales the value held in the atomic write buffers, when presenting to the screen
+	glm::mat3 rotationMatrix = glm::mat3( 1.0f ); // rotation for the unit cube, before displaying the points
+
+
+
+
+};
 
 // Function to get color temperature from shadertoy user BeRo
 // from the author:

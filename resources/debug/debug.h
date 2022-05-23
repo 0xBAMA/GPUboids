@@ -31,6 +31,8 @@ void MessageCallback( GLenum source,
 	if( severity == GL_DEBUG_SEVERITY_NOTIFICATION && show_notification_severity )
 		fprintf( stderr, "        GL CALLBACK: %s type = 0x%x, severity = GL_DEBUG_SEVERITY_NOTIFICATION, message = %s\n",
 						( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ), type, message );
+
+	SDL_Delay( 100 );
 }
 
 void glDebugEnable() {

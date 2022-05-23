@@ -34,6 +34,13 @@ static void HelpMarker( const char *desc ) {
 	}
 }
 
+void engine::paramWindow() {
+	ImGui::Begin( "Simulation Parameters", NULL, 0 );
+
+	ImGui::SliderFloat( "Output Range Scalar", &sp.outputRangeScalar, 0.0, 10000.0 );
+
+	ImGui::End();
+}
 
 void engine::drawTextEditor() {
 	ImGui::Begin( "Editor", NULL, 0 );

@@ -32,18 +32,23 @@ simulation rules:
 		force attracting to the center of mass of the visible local neighbors
 
 
-parameters:
+
+
+
+imgui parameters:
 	rendering:
 		output range scalar ( divisor for value kept in atomic accumulator buffers )
 
 	simulation:
 		number of boids - not user settable, just need for keeping track of how many boids are in play
-		velocity scalar
 		perception distance
-		perception angle
+		perception angle - dot product thresholding
 		separation weight
 		alignment weight
 		cohesion weight
+		max force applied by each term, per update
+		velocity scalar - multiplier on velocity, when applied to position
+		max velocity
 
 
 
