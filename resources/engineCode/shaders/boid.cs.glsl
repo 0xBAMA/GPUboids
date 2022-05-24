@@ -7,6 +7,8 @@ layout( binding = 3, r32ui ) uniform uimage2D currentB;
 uniform ivec2 computeDimensions;
 uniform float time;
 
+uniform float zoomFactor;
+
 uniform mat3 rotationMatrix;
 
 // write level is in the .w's
@@ -80,21 +82,30 @@ vec3 acceleration(){
 
 	int countBoidsInLocalNeighborhood = 0;
 	vec3 alignmentAccumulator = vec3( 0.0 );
+	vec3 cohesionAccumulator = vec3( 0.0 );
 	for( int i = 0; i < numBoids; i++ ) {
 		if( i != index ) { // no self comparisons
 			if( distance( data[ index ].position.xyz, data[ i ].position.xyz ) < 0.25 ) { // distance threshold
 				countBoidsInLocalNeighborhood++;
 				alignmentAccumulator += data[ i ].velocity.xyz;
+				cohesionAccumulator += data[ i ].position.xyz;
 			}
 		}
 	}
 	if( countBoidsInLocalNeighborhood > 0 ) {
+		// alignment
 		alignmentAccumulator /= float( countBoidsInLocalNeighborhood );
 		alignmentAccumulator = 0.01 * normalize( alignmentAccumulator );
-		// alignmentAccumulator -= data[ index ].position.xyz;
+		// alignmentAccumulator -= data[ index ].velocity.xyz; // not really understanding why this term would be included... works better without
+
+		// cohesion
+		cohesionAccumulator /= float( countBoidsInLocalNeighborhood );
+		cohesionAccumulator -= data[ index ].position.xyz;
+		cohesionAccumulator = 0.01 * normalize( cohesionAccumulator );
 	}
 
 	totalForce += alignmentAccumulator;
+	totalForce += cohesionAccumulator;
 
 	return totalForce;
 }
@@ -128,13 +139,12 @@ void draw( boidType boidUnderConsideration ){
 
 	vec3 drawPosition = boidUnderConsideration.position.xyz;
 	// drawPosition = rotate3D( time / 12.0, vec3( 1.0 ) ) * drawPosition;
-	drawPosition = rotationMatrix * drawPosition;
+	drawPosition =  zoomFactor * ( rotationMatrix * drawPosition );
 	ivec2 imageSizeScalar = ivec2( min( imageSize( currentR ).x, imageSize( currentR ).y ) );
-	ivec2 writeLocation = ivec2( 0.618 * ( drawPosition.xy + vec2( 1.0 ) ) * ( imageSizeScalar / 2 ) );
+	ivec2 writeLocation = ivec2( ( drawPosition.xy + vec2( 1.0 ) ) * ( imageSizeScalar / 2 ) );
 
 	// magic numbers for screen alignment
-	writeLocation.x += ( 850 );
-	writeLocation.y += ( 250 );
+	writeLocation.x += ( 550 );
 
 	imageAtomicAdd( currentR, writeLocation, int( 1000 * boidUnderConsideration.position.w ) );
 	imageAtomicAdd( currentG, writeLocation, int( 1000 * boidUnderConsideration.velocity.w ) );

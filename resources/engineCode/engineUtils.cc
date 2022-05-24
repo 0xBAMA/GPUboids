@@ -32,6 +32,7 @@ void engine::sendSimParams() {
 	glUniform1f( glGetUniformLocation( displayShader, "outputRangeScalar" ), sp.outputRangeScalar );
 
 	glUseProgram( boidShader );
+	glUniform1f( glGetUniformLocation( boidShader, "zoomFactor" ), sp.zoomFactor );
 	glUniform2i( glGetUniformLocation( boidShader, "computeDimensions" ), sqrtNumBoids, sqrtNumBoids );
 	glUniformMatrix3fv( glGetUniformLocation( boidShader, "rotationMatrix" ), 1, GL_FALSE, glm::value_ptr( sp.rotationMatrix ) );
 }
@@ -124,6 +125,14 @@ void engine::handleEvents() {
 		if( event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT ) {
 			glm::quat rot = glm::angleAxis( SDL_GetModState() & KMOD_SHIFT ?  0.1f :  0.005f, glm::vec3( 0.0, 1.0, 0.0 ) );
 			sp.rotationMatrix = glm::toMat3( rot ) * sp.rotationMatrix;
+		}
+
+		if ( event.type == SDL_MOUSEWHEEL ) {
+			if ( event.wheel.y > 0 ) {
+				sp.zoomFactor *= 0.9;
+			} else if ( event.wheel.y < 0 ) {
+				sp.zoomFactor *= 1.1;
+			}
 		}
 	}
 }
