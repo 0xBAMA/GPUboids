@@ -33,8 +33,15 @@ void engine::sendSimParams() {
 
 	glUseProgram( boidShader );
 	glUniform1f( glGetUniformLocation( boidShader, "zoomFactor" ), sp.zoomFactor );
+	glUniform1f( glGetUniformLocation( boidShader, "senseDistance" ), sp.senseDistance );
+	glUniform1f( glGetUniformLocation( boidShader, "alignmentForceScalar" ), sp.alignmentForceScalar );
+	glUniform1f( glGetUniformLocation( boidShader, "separationForceScalar" ), sp.separationForceScalar );
+	glUniform1f( glGetUniformLocation( boidShader, "cohesionForceScalar" ), sp.cohesionForceScalar );
 	glUniform2i( glGetUniformLocation( boidShader, "computeDimensions" ), sqrtNumBoids, sqrtNumBoids );
 	glUniformMatrix3fv( glGetUniformLocation( boidShader, "rotationMatrix" ), 1, GL_FALSE, glm::value_ptr( sp.rotationMatrix ) );
+
+	glUseProgram( blurShader );
+	glUniform1f( glGetUniformLocation( blurShader, "decayFactor" ), sp.decayFactor );
 }
 
 void engine::clear() {
@@ -129,9 +136,9 @@ void engine::handleEvents() {
 
 		if ( event.type == SDL_MOUSEWHEEL ) {
 			if ( event.wheel.y > 0 ) {
-				sp.zoomFactor *= 0.9;
-			} else if ( event.wheel.y < 0 ) {
 				sp.zoomFactor *= 1.1;
+			} else if ( event.wheel.y < 0 ) {
+				sp.zoomFactor *= 0.9;
 			}
 		}
 	}

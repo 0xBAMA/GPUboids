@@ -8,8 +8,13 @@ uniform ivec2 computeDimensions;
 uniform float time;
 
 uniform float zoomFactor;
-
 uniform mat3 rotationMatrix;
+
+uniform float alignmentForceScalar;
+uniform float cohesionForceScalar;
+uniform float separationForceScalar;
+
+uniform float senseDistance;
 
 // write level is in the .w's
 struct boidType{
@@ -60,52 +65,61 @@ float randomFloat() { return float( wangHash() ) / 4294967296.0; }
 vec3 acceleration(){
 	int numBoids = computeDimensions.x * computeDimensions.y;
 
-	vec3 totalForce = vec3( 0.0 );
-
-	// separation term
-
-
-	// alignment term - align with nearby agents
-		// for all boids
-			// if within perception distance, look at the velocity value for that agent, add to accumulator
-				// increment a total count
-			// end for
-		// if total count greater than zero
-			// accumulator divided by total count to get result
-			// scale the result by the maximum velocity
-			// subtract the current boid's velocity to get the steering force
-			// limit the magnitude of this vector by the maximum force
-
-
-	// cohesion term
+	// boid under consideration's position is constant
+	const vec3 myPos = data[ index ].position.xyz;
+	// colors
+	const float myRed = data[ index ].position.w;
+	const float myGreen = data[ index ].velocity.w;
+	const float myBlue = data[ index ].binValue.w;
 
 
 	int countBoidsInLocalNeighborhood = 0;
+	// accumulators for the force calcs
 	vec3 alignmentAccumulator = vec3( 0.0 );
 	vec3 cohesionAccumulator = vec3( 0.0 );
+	vec3 separationAccumulator = vec3( 0.0 );
+
+	// minimum value for distance, to prevent divide by zero
+	const float distanceEpsilon = 0.0001;
+
 	for( int i = 0; i < numBoids; i++ ) {
 		if( i != index ) { // no self comparisons
-			if( distance( data[ index ].position.xyz, data[ i ].position.xyz ) < 0.25 ) { // distance threshold
+			const float d = max( distance( myPos, data[ i ].position.xyz ), distanceEpsilon );
+			if( d < senseDistance ) { // distance threshold
 				countBoidsInLocalNeighborhood++;
+
+				// alignment
 				alignmentAccumulator += data[ i ].velocity.xyz;
+
+				// cohesion
 				cohesionAccumulator += data[ i ].position.xyz;
+
+				// difference
+				vec3 difference = myPos - data[ i ].position.xyz;
+				difference /= d;
+				separationAccumulator += difference;
 			}
 		}
 	}
 	if( countBoidsInLocalNeighborhood > 0 ) {
 		// alignment
 		alignmentAccumulator /= float( countBoidsInLocalNeighborhood );
-		alignmentAccumulator = 0.01 * normalize( alignmentAccumulator );
-		// alignmentAccumulator -= data[ index ].velocity.xyz; // not really understanding why this term would be included... works better without
+		alignmentAccumulator = alignmentForceScalar * normalize( alignmentAccumulator );
 
 		// cohesion
 		cohesionAccumulator /= float( countBoidsInLocalNeighborhood );
 		cohesionAccumulator -= data[ index ].position.xyz;
-		cohesionAccumulator = 0.01 * normalize( cohesionAccumulator );
+		cohesionAccumulator = cohesionForceScalar * normalize( cohesionAccumulator );
+
+		// separation
+		separationAccumulator /= float( countBoidsInLocalNeighborhood );
+		separationAccumulator = separationForceScalar * normalize( separationAccumulator );
 	}
 
+	vec3 totalForce = vec3( 0.0 );
 	totalForce += alignmentAccumulator;
 	totalForce += cohesionAccumulator;
+	totalForce += separationAccumulator;
 
 	return totalForce;
 }
@@ -124,6 +138,8 @@ void wraparoundBoundsCheck( inout vec3 val ){
 }
 
 void update( inout boidType boidUnderConsideration ){
+	wraparoundBoundsCheck( boidUnderConsideration.position.xyz );
+
 	boidUnderConsideration.position.xyz += 0.001 * boidUnderConsideration.velocity.xyz;
 	boidUnderConsideration.velocity.xyz += acceleration();
 
@@ -132,7 +148,6 @@ void update( inout boidType boidUnderConsideration ){
 	mag = clamp( mag, 0.0, 1.0 );
 	boidUnderConsideration.velocity.xyz = mag * normalize( boidUnderConsideration.velocity.xyz );
 
-	wraparoundBoundsCheck( boidUnderConsideration.position.xyz );
 }
 
 void draw( boidType boidUnderConsideration ){

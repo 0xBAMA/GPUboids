@@ -35,11 +35,28 @@ static void HelpMarker( const char *desc ) {
 }
 
 void engine::paramWindow() {
-	ImGui::Begin( "Simulation Parameters", NULL, 0 );
+	ImGui::Begin( "Parameters", NULL, 0 );
 
+	ImGui::Text( "Rendering Parameters" );
+	ImGui::SliderFloat( "Decay Factor", &sp.decayFactor, 0.75, 0.9999 );
 	ImGui::SliderFloat( "Output Range Scalar", &sp.outputRangeScalar, 0.0, 10000.0 );
-	ImGui::SameLine();
-	HelpMarker( "Scalar for the values kept in the atomic write buffers, when presented to output" );
+	ImGui::SliderFloat( "Zoom Factor", &sp.zoomFactor, 0.001, 3.0 );
+
+	ImGui::Text( " " );
+	ImGui::Text( "Simulation Parameters" );
+	ImGui::SliderFloat( "Agent Sense Distance", &sp.senseDistance, 0.01, 0.5 );
+	ImGui::Separator();
+	if( ImGui::SmallButton( " Randomize Force Scalars " ) ){
+		std::random_device rd;
+		std::mt19937 gen( rd(  ) );
+		std::uniform_real_distribution< float > dist( 0.0, 0.08 );
+		sp.alignmentForceScalar = dist( gen );
+		sp.separationForceScalar = dist( gen );
+		sp.cohesionForceScalar = dist( gen );
+	}
+	ImGui::SliderFloat( "Alignment Force Scalar", &sp.alignmentForceScalar, 0.0, 0.08 );
+	ImGui::SliderFloat( "Separation Force Scalar", &sp.separationForceScalar, 0.0, 0.08 );
+	ImGui::SliderFloat( "Cohesion Force Scalar", &sp.cohesionForceScalar, 0.0, 0.08 );
 
 
 
@@ -87,7 +104,7 @@ void engine::imguiFrameStart() {
 	ImGui::NewFrame();
 	}
 
-	void engine::imguiFrameEnd() {
+void engine::imguiFrameEnd() {
 	// get it ready to put on the screen
 	ImGui::Render();
 

@@ -37,19 +37,20 @@ simulation rules:
 
 imgui parameters:
 	rendering:
-		output range scalar ( divisor for value kept in atomic accumulator buffers )
+		~~output range scalar ( divisor for value kept in atomic accumulator buffers )~~
+		~~decay amount~~
 
 	simulation:
-		number of boids - not user settable, just need for keeping track of how many boids are in play
 		perception distance
 		perception angle - dot product thresholding
-		separation weight
-		alignment weight
-		cohesion weight
 		max force applied by each term, per update
 		velocity scalar - multiplier on velocity, when applied to position
 		max velocity
 
+		~~number of boids - not user settable, just need for keeping track of how many boids are in play~~
+		~~separation weight~~
+		~~alignment weight~~
+		~~cohesion weight~~
 
 
 

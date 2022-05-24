@@ -11,8 +11,7 @@ layout( binding = 5, r32ui ) uniform uimage2D previousG;
 layout( binding = 6, r32ui ) uniform uimage2D previousB;
 
 // amount that the result of the kernel decays each frame
-// uniform float decayFactor;
-const float decayFactor = 0.99;
+uniform float decayFactor;
 
 // gaussian kernel - diffuses data from atomic writes outwards
 float applyKernel( uimage2D readFrom, ivec2 position ){

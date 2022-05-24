@@ -92,16 +92,21 @@ using json = nlohmann::json;
 
 static const int writeBufferSize = 1024;
 static const int floatsPerBoid = 12;
-static const int sqrtNumBoids = 64;
+static const int sqrtNumBoids = 128;
 
 struct simParams {
 	// rendering
 	float outputRangeScalar = 1618; // scales the value held in the atomic write buffers, when presenting to the screen
 	float zoomFactor = 0.618;				// scales the unit cube before atomic writes are performed
 	glm::mat3 rotationMatrix = glm::mat3( 1.0f ); // rotation for the unit cube, before displaying the points
-
+	float decayFactor = 0.99;
+	float senseDistance = 0.25;
 
 	// simulation
+	float alignmentForceScalar = 0.05;
+	float cohesionForceScalar = 0.05;
+	float separationForceScalar = 0.05;
+
 
 
 };

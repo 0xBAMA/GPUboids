@@ -164,9 +164,9 @@ void engine::createWindowAndContext() {
 				// write amounts, r,g,b ( encoded in the .w's of the three above vectors )
 
 
-				for( int j = 0; j < ( floatsPerBoid / 4 ); j++ ){
-					boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), std::abs( fdist( gen ) ) + 1.0 ) );
-				}
+			boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), std::abs( fdist( gen ) ) * 1.1f + 0.1f ) );
+			boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), std::abs( fdist( gen ) ) * 0.7f + 0.1f ) );
+			boidInitialData.push_back( glm::vec4( fdist( gen ), fdist( gen ), fdist( gen ), std::abs( fdist( gen ) ) * 0.4f + 0.1f ) );
 	}
 
 	glGenBuffers( 1, &boidSSBO );
